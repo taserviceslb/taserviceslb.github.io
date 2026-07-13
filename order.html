@@ -363,6 +363,35 @@
                       </div>
 
 
+                      <!-- Live Order Price -->
+
+                      <div class="col-12" id="livePriceBox">
+
+                        <div class="form-group">
+
+                          <label for="liveOrderPrice">
+                            Order Price
+                          </label>
+
+                          <div class="input-box">
+
+                            <i class="fa-solid fa-tag"></i>
+
+                            <input
+                              type="text"
+                              id="liveOrderPrice"
+                              value="Choose a service to see the price"
+                              style="color: #ffffff; font-weight: 700; opacity: 1;"
+                              readonly
+                            >
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+
                       <!-- WhatsApp Department -->
 
                       <div class="col-md-6">
@@ -576,6 +605,49 @@
     const orderForm = document.getElementById("orderForm");
     const serviceTypeSelect = document.getElementById("serviceType");
     const dynamicOptions = document.getElementById("dynamicOptions");
+    const livePriceBox = document.getElementById("livePriceBox");
+    const liveOrderPrice = document.getElementById("liveOrderPrice");
+
+    const socialPrices = {
+      Instagram: {
+        Followers: { unit: 1000, price: 4 },
+        Likes: { unit: 1000, price: 0.50 },
+        Views: { unit: 1000, price: 0.20 },
+        "Custom Comments": { unit: 100, price: 3 },
+        "Random Comments": { unit: 1000, price: 3 },
+        "Positive Emoji Comments": { unit: 100, price: 3 },
+        "Negative Emoji Comments": { unit: 100, price: 4 }
+      },
+      TikTok: {
+        Followers: { unit: 1000, price: 4 },
+        Likes: { unit: 1000, price: 1 },
+        Views: { unit: 1000, price: 0.20 },
+        "Custom Comments": { unit: 100, price: 3 },
+        "Random Comments": { unit: 1000, price: 3 },
+        "Positive Emoji Comments": { unit: 100, price: 3 },
+        "Negative Emoji Comments": { unit: 100, price: 4 }
+      }
+    };
+
+    const gamePrices = {
+      "PUBG Mobile": { unit: 60, unitLabel: "UC", price: 0.99 },
+      "Free Fire": { unit: 110, unitLabel: "Diamonds", price: 0.99 },
+      "Fortnite": { unit: 800, unitLabel: "V-Bucks", price: 7.99 },
+      "eFootball": { unit: 1040, unitLabel: "Coins", price: 9.99 },
+      "Call of Duty Mobile": { unit: 80, unitLabel: "CP", price: 0.99 },
+      "Clash of Clans": { unit: 80, unitLabel: "Gems", price: 0.99 },
+      "Clash Royale": { unit: 500, unitLabel: "Gems", price: 4.99 },
+      "Jawaker": { unit: 4250, unitLabel: "Tokens", price: 0.99 },
+      "Roblox": { unit: 400, unitLabel: "Robux", price: 4.99 }
+    };
+
+    const applicationPrices = {
+      Netflix: { price: 10.99, monthsPerPackage: 1 },
+      Shahid: { price: 13.49, monthsPerPackage: 3 },
+      "Spotify Premium": { price: 6.99, monthsPerPackage: 1 },
+      "ChatGPT Plus": { price: 20, monthsPerPackage: 1 },
+      "Gemini AI Pro": { price: 19.99, monthsPerPackage: 1 }
+    };
 
 
     function fieldTemplate({
@@ -680,12 +752,7 @@
             required: true,
             options: [
               "Instagram",
-              "TikTok",
-              "Facebook",
-              "YouTube",
-              "Telegram",
-              "X / Twitter",
-              "Snapchat"
+              "TikTok"
             ]
           }) +
 
@@ -700,12 +767,21 @@
               "Followers",
               "Likes",
               "Views",
-              "Comments",
-              "Shares",
-              "Saves",
-              "Watch Time",
-              "Live Viewers",
-              "Subscribers"
+              "Comments"
+            ]
+          }) +
+
+          fieldTemplate({
+            label: "Comment Type",
+            id: "commentType",
+            name: "commentType",
+            icon: "fa-solid fa-comments",
+            placeholder: "Choose comment type",
+            options: [
+              "Custom Comments",
+              "Random Comments",
+              "Positive Emoji Comments",
+              "Negative Emoji Comments"
             ]
           }) +
 
@@ -729,6 +805,23 @@
             placeholder: "Example: 1000",
             required: true
           });
+
+        const socialService = document.getElementById("socialService");
+        const commentType = document.getElementById("commentType");
+        const commentTypeField = commentType.closest(".dynamic-field");
+
+        function updateCommentTypeField() {
+          const commentsSelected = socialService.value === "Comments";
+          commentTypeField.style.display = commentsSelected ? "block" : "none";
+          commentType.required = commentsSelected;
+
+          if (!commentsSelected) {
+            commentType.value = "";
+          }
+        }
+
+        socialService.addEventListener("change", updateCommentTypeField);
+        updateCommentTypeField();
       }
 
 
@@ -744,16 +837,13 @@
             options: [
               "PUBG Mobile",
               "Free Fire",
-              "Mobile Legends",
-              "Call of Duty Mobile",
               "Fortnite",
-              "Roblox",
-              "Valorant",
-              "League of Legends",
+              "eFootball",
+              "Call of Duty Mobile",
               "Clash of Clans",
-              "EA Sports FC",
-              "PlayStation",
-              "Xbox"
+              "Clash Royale",
+              "Jawaker",
+              "Roblox"
             ]
           }) +
 
@@ -762,14 +852,9 @@
             id: "gamePackage",
             name: "gamePackage",
             icon: "fa-solid fa-coins",
-            placeholder: "Choose recharge package",
-            required: true,
-            options: [
-              "Small Package",
-              "Medium Package",
-              "Large Package",
-              "Custom Package"
-            ]
+            type: "number",
+            placeholder: "Choose a game first",
+            required: true
           }) +
 
           fieldTemplate({
@@ -779,15 +864,27 @@
             icon: "fa-solid fa-id-card",
             placeholder: "Enter your Player ID",
             required: true
-          }) +
-
-          fieldTemplate({
-            label: "Server ID",
-            id: "serverId",
-            name: "serverId",
-            icon: "fa-solid fa-server",
-            placeholder: "Enter Server ID if required"
           });
+
+        const gameName = document.getElementById("gameName");
+        const gamePackage = document.getElementById("gamePackage");
+
+        function updateGamePackageField() {
+          const priceInfo = gamePrices[gameName.value];
+
+          gamePackage.value = "";
+          gamePackage.placeholder = priceInfo
+            ? `Enter amount (base: ${priceInfo.unit.toLocaleString()} ${priceInfo.unitLabel})`
+            : "Choose a game first";
+          gamePackage.dataset.label = priceInfo
+            ? `Recharge Package (${priceInfo.unitLabel})`
+            : "Recharge Package";
+
+          updateLivePrice();
+        }
+
+        gameName.addEventListener("change", updateGamePackageField);
+        updateGamePackageField();
       }
 
 
@@ -803,16 +900,9 @@
             options: [
               "Netflix",
               "Shahid",
-              "OSN Plus",
-              "Disney Plus",
-              "Spotify",
-              "YouTube Premium",
-              "Anghami Plus",
-              "Apple Music",
-              "Amazon Prime",
-              "Canva Pro",
+              "Spotify Premium",
               "ChatGPT Plus",
-              "Microsoft 365"
+              "Gemini AI Pro"
             ]
           }) +
 
@@ -854,6 +944,28 @@
             type: "email",
             placeholder: "Enter your account email"
           });
+
+        const applicationName = document.getElementById("applicationName");
+        const subscriptionDuration =
+          document.getElementById("subscriptionDuration");
+
+        function updateSubscriptionDurations() {
+          const durations = applicationName.value === "Shahid"
+            ? ["3 Months", "6 Months", "12 Months"]
+            : ["1 Month", "3 Months", "6 Months", "12 Months"];
+
+          subscriptionDuration.innerHTML = `
+            <option value="" selected disabled>
+              Choose subscription duration
+            </option>
+            ${durations.map(duration => `
+              <option value="${duration}">${duration}</option>
+            `).join("")}
+          `;
+        }
+
+        applicationName.addEventListener("change", updateSubscriptionDurations);
+        updateSubscriptionDurations();
       }
 
 
@@ -918,29 +1030,15 @@
           }) +
 
           fieldTemplate({
-            label: "Recharge Type",
-            id: "alfaService",
-            name: "alfaService",
+            label: "Recharge Card",
+            id: "alfaCard",
+            name: "alfaCard",
             icon: "fa-solid fa-sim-card",
-            placeholder: "Choose recharge type",
+            placeholder: "Select card type",
             required: true,
             options: [
-              "Credit Recharge",
-              "Internet Bundle",
-              "WhatsApp Bundle",
-              "Minutes Bundle",
-              "SMS Bundle"
+              "Full Recharge Card"
             ]
-          }) +
-
-          fieldTemplate({
-            label: "Amount",
-            id: "alfaAmount",
-            name: "alfaAmount",
-            icon: "fa-solid fa-dollar-sign",
-            type: "number",
-            placeholder: "Enter recharge amount",
-            required: true
           });
       }
 
@@ -958,29 +1056,15 @@
           }) +
 
           fieldTemplate({
-            label: "Recharge Type",
-            id: "touchService",
-            name: "touchService",
+            label: "Recharge Card",
+            id: "touchCard",
+            name: "touchCard",
             icon: "fa-solid fa-sim-card",
-            placeholder: "Choose recharge type",
+            placeholder: "Select card type",
             required: true,
             options: [
-              "Credit Recharge",
-              "Internet Bundle",
-              "WhatsApp Bundle",
-              "Minutes Bundle",
-              "SMS Bundle"
+              "Full Recharge Card"
             ]
-          }) +
-
-          fieldTemplate({
-            label: "Amount",
-            id: "touchAmount",
-            name: "touchAmount",
-            icon: "fa-solid fa-dollar-sign",
-            type: "number",
-            placeholder: "Enter recharge amount",
-            required: true
           });
       }
 
@@ -1013,7 +1097,111 @@
 
     serviceTypeSelect.addEventListener("change", function() {
       renderDynamicFields(this.value);
+      livePriceBox.hidden = false;
+      updateLivePrice();
     });
+
+
+    function formatPrice(price) {
+      return `$${price.toFixed(2)}`;
+    }
+
+
+    function getOrderPrice(service) {
+      if (service === "social-media") {
+        const platform = document.getElementById("socialPlatform").value;
+        const selectedService = document.getElementById("socialService").value;
+        const quantity = Number(document.getElementById("socialQuantity").value);
+        const commentType = document.getElementById("commentType").value;
+        const priceKey = selectedService === "Comments"
+          ? commentType
+          : selectedService;
+        const priceInfo = socialPrices[platform]?.[priceKey];
+
+        if (!priceInfo) {
+          return "Choose the platform and service type";
+        }
+
+        if (!quantity) {
+          return `${formatPrice(priceInfo.price)} per ${priceInfo.unit.toLocaleString()}`;
+        }
+
+        const total = (quantity / priceInfo.unit) * priceInfo.price;
+        return `${formatPrice(total)} (${formatPrice(priceInfo.price)} per ${priceInfo.unit.toLocaleString()})`;
+      }
+
+      if (service === "game-topup") {
+        const game = document.getElementById("gameName").value;
+        const rechargeAmount = Number(
+          document.getElementById("gamePackage").value
+        );
+        const priceInfo = gamePrices[game];
+
+        if (!priceInfo) {
+          return "Choose a game";
+        }
+
+        const basePackage =
+          `${priceInfo.unit.toLocaleString()} ${priceInfo.unitLabel}`;
+
+        if (!rechargeAmount) {
+          return `${formatPrice(priceInfo.price)} per ${basePackage}`;
+        }
+
+        const total =
+          (rechargeAmount / priceInfo.unit) * priceInfo.price;
+
+        return `${formatPrice(total)} (${formatPrice(priceInfo.price)} per ${basePackage})`;
+      }
+
+      if (service === "application-subscription") {
+        const application = document.getElementById("applicationName").value;
+        const durationText =
+          document.getElementById("subscriptionDuration").value;
+        const months = Number.parseInt(durationText, 10);
+        const priceInfo = applicationPrices[application];
+
+        if (!priceInfo) {
+          return "Choose an application";
+        }
+
+        if (!months) {
+          const durationLabel = priceInfo.monthsPerPackage === 1
+            ? "1 month"
+            : `${priceInfo.monthsPerPackage} months`;
+
+          return `${formatPrice(priceInfo.price)} per ${durationLabel}`;
+        }
+
+        const packageCount = months / priceInfo.monthsPerPackage;
+        const total = packageCount * priceInfo.price;
+
+        return formatPrice(total);
+      }
+
+      if (service === "web-development" || service === "other-service") {
+        return "To be confirmed after reviewing the request";
+      }
+
+      return "";
+    }
+
+
+    function updateLivePrice() {
+      if (!serviceTypeSelect.value) {
+        livePriceBox.hidden = false;
+        liveOrderPrice.value = "Choose a service to see the price";
+        return;
+      }
+
+      const price = getOrderPrice(serviceTypeSelect.value);
+      livePriceBox.hidden = false;
+      liveOrderPrice.value = price || "No fixed price for this service";
+    }
+
+
+    dynamicOptions.addEventListener("input", updateLivePrice);
+    dynamicOptions.addEventListener("change", updateLivePrice);
 
 
     orderForm.addEventListener("submit", function(event) {
@@ -1039,6 +1227,8 @@
       const selectedServiceText =
         serviceTypeSelect.options[serviceTypeSelect.selectedIndex].text;
 
+      const orderPrice = getOrderPrice(serviceTypeSelect.value);
+
       const dynamicFields =
         dynamicOptions.querySelectorAll("input, select, textarea");
 
@@ -1063,6 +1253,10 @@
           ? orderNotes
           : "No additional notes";
 
+      const priceDetails = orderPrice !== ""
+        ? `\n\n💵 Price:\n${orderPrice}`
+        : "";
+
       const message =
 `Hello TA SERVICES 👋
 
@@ -1082,14 +1276,14 @@ ${customerPhone}
 ${selectedServiceText}
 
 📋 Service Details:
-${serviceDetails}
+${serviceDetails}${priceDetails}
 
 📝 Additional Notes:
 ${finalNotes}
 
 ━━━━━━━━━━━━━━━━━━
 
-Please review my order and send me the price and payment information.
+Please review my order and send me the payment information.
 
 Thank you.`;
 
